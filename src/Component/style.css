@@ -1,0 +1,237 @@
+/* Base animation definitions */
+
+.loading-indicator {
+    display: inline-block;
+}
+
+.spinner {
+    /* size of spinner */
+    width: 60px;
+    height: 60px;
+
+    /* make a circular border */
+    border: 6px solid rgba(255, 255, 255, 0.2);
+    /* faint border */
+    border-top: 6px solid rgba(255, 0, 191, 0.815);
+    /* highlight color, same as text shadow */
+    border-radius: 50%;
+
+    /* neon-like glow around the spinner */
+    box-shadow:
+        0 0 5px rgb(255, 0, 191),
+        0 0 10px rgba(0, 217, 255, 0.808),
+        0 0 20px rgba(0, 183, 255, 0.719),
+        0 0 30px rgb(235, 1, 223);
+
+    /* rotate the spinner */
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-5px);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(5px);
+    }
+}
+
+@keyframes pulsateLight {
+    0% {
+        text-shadow: 0 0 10px rgb(255, 0, 234), 0 0 20px rgb(255, 0, 242);
+    }
+
+    50% {
+        text-shadow: 0 0 20px rgb(0, 195, 255), 0 0 30px rgb(2, 111, 155), 0 0 40px rgba(0, 174, 255, 0.651);
+    }
+
+    100% {
+        text-shadow: 0 0 10px rgb(255, 25, 224), 0 0 20px rgb(0, 130, 190);
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes countdown {
+    0% {
+        width: 100%;
+    }
+
+    100% {
+        width: 0%;
+    }
+}
+
+/* Component animations */
+.hit-message {
+    animation: shake 0.5s ease-in-out;
+}
+
+.game-over-screen {
+    animation: fadeIn 1s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.pulsating {
+    animation: pulse 2s infinite;
+    text-shadow: 0 0 20px #f00, 0 0 30px #f00;
+    font-family: "Orbitron", sans-serif;
+}
+
+.pulsating-light {
+    animation: pulsateLight 2s infinite;
+}
+
+.results-screen {
+    animation: slideInRight 0.8s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.winner-card {
+    animation: fadeIn 1s ease-in-out 0.3s both;
+}
+
+.final-results {
+    animation: slideInUp 0.8s ease-in-out 0.5s both;
+}
+
+.spinner {
+    width: 65px;
+    height: 67px;
+    border-radius: 50%;
+    border: 10px solid #62bebe;
+    position: relative;
+    animation: spin 1s linear infinite;
+    
+    /* Add a gradient and mask it */
+    background: conic-gradient(
+        rgb(204, 1, 153),
+        rgba(0, 119, 139, 0.945),
+        rgba(0, 183, 255, 0.719)
+    );
+    mask-image: radial-gradient(circle, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 1) 100%);
+    -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 1) 100%);
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* Countdown loader for game over screen */
+.countdown-container {
+    width: 300px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 5px;
+}
+
+.countdown-loader {
+    height: 10px;
+    background-color: #00f;
+    border-radius: 5px;
+    animation: countdown 8s linear forwards;
+}
+
+/* Screen transitions */
+.waiting-screen,
+.game-screen,
+.game-over-screen,
+.results-screen {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
