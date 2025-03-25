@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Progress, Card, CardBody, CardTitle, CardText, Badge } from 'reactstrap';
-import Neon from "./asset/neon.mp4";
+import Neon from "./asset/neon2.mp4";
 import winner_background from "./asset/winner_background.mp4";
 import During_Game from "./asset/default_video.mp4";
 import Waiting from './Component/waiting';
