@@ -230,7 +230,8 @@ const SmasherGameUI = () => {
 
         handleGameStateChange();
     }, [gameState, gameActive, players, currentScreen]);
-
+    
+    console.log("whoo time",timeLeft)
     // Timer countdown effect
     useEffect(() => {
         if (gameActive && timeLeft === 0) {
@@ -249,7 +250,7 @@ const SmasherGameUI = () => {
                 setShowResults(true);
             }, 50000); // 50 seconds 
         }
-    }, [timeLeft, gameActive, gameState, players]);
+    }, [gameActive, gameState, players]);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60).toString().padStart(2, '0');

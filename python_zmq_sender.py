@@ -42,9 +42,11 @@ class WebSocketSender:
                 new_p2_text = input("Enter P2 text code (1-5): ")
                 
                 with self.timer_lock:
-                    # If we're starting a new game, reset the timer
+                    # If we're starting a new game, reset the timer and scores
                     if new_start_flag and not self.start_flag:
                         self.time_remaining = 60
+                        self.p1_score = 0
+                        self.p2_score = 0
                     
                     # Update the flags and texts
                     self.start_flag = new_start_flag
@@ -82,23 +84,23 @@ class WebSocketSender:
                         break
                     else:
                         self.time_remaining -= 1
-                
-                time.sleep(1)  # Update every second
+                time.sleep(1)  # decrement timer every second
             
-            # Wait for reset
+            # Wait for reset (for example, until stop_flag is cleared by user input)
             while self.running and self.stop_flag:
                 time.sleep(0.1)
 
     async def send_data(self, websocket, path=None):
-        """Send data directly through WebSockets."""
+        """Send data directly through WebSockets, only when values change."""
+        last_message = None  # Store last sent message to prevent unnecessary updates
         try:
             while self.running:
                 with self.timer_lock:
-                    # Randomly increment scores
-                    self.p1_score += random.randint(10, 50)
-                    self.p2_score += random.randint(10, 50)
+                    # Optionally, only update scores when the game is active
+                    if self.start_flag:
+                        self.p1_score += random.randint(10, 50)
+                        self.p2_score += random.randint(10, 50)
                     
-                    # Create message dictionary including time_remaining
                     message = {
                         "start_flag": self.start_flag,
                         "stop_flag": self.stop_flag,
@@ -108,24 +110,21 @@ class WebSocketSender:
                         "p2_win_state": self.p2_win_state,
                         "p1_text": self.p1_text,
                         "p2_text": self.p2_text,
-                        "time_remaining": str(self.time_remaining)  # Add time remaining
+                        "time_remaining": str(self.time_remaining)
                     }
-
-                # Convert to JSON string
+                
                 json_message = json.dumps(message)
+                # Only send update if there is a change from the last sent message.
+                if json_message != last_message:
+                    await websocket.send(json_message)
+                    last_message = json_message
                 
-                # Send to the WebSocket client
-                await websocket.send(json_message)
-                # print(f"Sent message to WebSocket client")
-                
-                await asyncio.sleep(0.1)  # Control sending interval
-
+                await asyncio.sleep(1)  # update interval: 1 second
         except websockets.exceptions.ConnectionClosed as e:
             print(f"WebSocket connection closed: {e}")
 
     async def start_websocket_server(self):
         """Start the WebSocket server."""
-        # Pass the `send_data` function to the `websockets.serve` method
         server = await websockets.serve(
             self.send_data, "localhost", self.websocket_port
         )
@@ -134,7 +133,6 @@ class WebSocketSender:
 
     async def run(self):
         """Run the server and manage threads."""
-        # Start WebSocket server
         server = await self.start_websocket_server()
 
         # Start the input and timer threads
@@ -145,7 +143,7 @@ class WebSocketSender:
         timer_thread.start()
         
         try:
-            await asyncio.Future()  # Keep the server running
+            await asyncio.Future()  # Run forever
         except asyncio.CancelledError:
             self.running = False
             server.close()

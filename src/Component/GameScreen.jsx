@@ -33,7 +33,7 @@ const GameScreen = ({
         <Col xs={12} md={8} className="mx-auto">
           <div>
             <h2 className="text-white mb-1">{TimeRemaining}</h2>
-            <h3 className="display-4 text-white fw-bold mb-0">
+            <h3 className="display-4 text-white fw-bold mb-0 pulsating-light">
               {formatTime(timeLeft)}
             </h3>
           </div>
