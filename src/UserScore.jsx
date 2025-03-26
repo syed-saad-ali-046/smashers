@@ -66,75 +66,79 @@ const SmasherGameUI = () => {
         const setupWebSocketConnection = () => {
             if (connectingRef.current) return;
             connectingRef.current = true;
-
+    
             try {
                 const wsUrl = 'ws://localhost:8061';
                 const socket = new WebSocket(wsUrl);
-
+    
                 socket.onopen = () => {
                     console.log('Connected to WebSocket proxy for ZMQ');
                     socketRef.current = socket;
                     connectingRef.current = false;
-
+    
                     // Clear any reconnect timers
                     if (wsReconnectTimerRef.current) {
                         clearTimeout(wsReconnectTimerRef.current);
                         wsReconnectTimerRef.current = null;
                     }
                 };
-
+    
                 socket.onmessage = (event) => {
                     try {
                         const data = JSON.parse(event.data);
                         console.log('Received ZMQ data:', data);
-
-                        // Update game state
+    
+                        // Update game state based on received WebSocket data
                         setGameState(prevState => {
                             const newState = { ...prevState, ...data };
-
-                            // Handle player hits when text codes are received
-                            if (data.p1_text && data.p1_text !== "0" && data.p1_text !== prevState.p1_text) {
-                                // Add a simulated hit value for player 1
-                                const hitValue = `${Math.floor(Math.random() * 300) + 700}`;
-                                setPlayers(prev => ({
-                                    ...prev,
-                                    playerOne: {
-                                        ...prev.playerOne,
-                                        hits: [...prev.playerOne.hits, hitValue].slice(-3) // Keep only last 3 hits
-                                    }
-                                }));
+    
+                            // Transition based on start_flag and stop_flag values
+                            if (data.start_flag === 0 && data.stop_flag === 0) {
+                                // Show waiting screen
+                                setCurrentScreen('waiting');
+                                setGameActive(false);
+                                setGameOver(false);
+                                setShowResults(false);
+                            } else if (data.start_flag === 1 && data.stop_flag === 0) {
+                                // Game starting
+                                setCurrentScreen('game');
+                                setGameActive(true);
+                                setGameOver(false);
+                                setShowResults(false);
+                                setTimeLeft(parseInt(gameState.time_remaining) || 60);
+                            } else if (data.start_flag === 0 && data.stop_flag === 1) {
+                                // Show winner screen
+                                setCurrentScreen('results');
+                                setGameActive(false);
+                                setGameOver(true);
+                                setShowResults(true);
+                                // Handle independent timer for winner screen
+                                const timer = setTimeout(() => {
+                                    setCurrentScreen('waiting');
+                                    setGameOver(false);
+                                    setShowResults(false);
+                                }, 500000); // Timer duration for results screen
+                                return () => clearTimeout(timer);
                             }
-
-                            if (data.p2_text && data.p2_text !== "0" && data.p2_text !== prevState.p2_text) {
-                                // Add a simulated hit value for player 2
-                                const hitValue = `${Math.floor(Math.random() * 300) + 600}`;
-                                setPlayers(prev => ({
-                                    ...prev,
-                                    playerTwo: {
-                                        ...prev.playerTwo,
-                                        hits: [...prev.playerTwo.hits, hitValue].slice(-3) // Keep only last 3 hits
-                                    }
-                                }));
-                            }
-
+    
                             return newState;
                         });
                     } catch (error) {
                         console.error('Error parsing WebSocket message:', error);
                     }
                 };
-
+    
                 socket.onerror = (error) => {
                     console.error('WebSocket error:', error);
                     socketRef.current = null;
                     connectingRef.current = false;
                 };
-
+    
                 socket.onclose = () => {
                     console.log('WebSocket connection closed');
                     socketRef.current = null;
                     connectingRef.current = false;
-
+    
                     // Try to reconnect after a delay
                     wsReconnectTimerRef.current = setTimeout(() => {
                         console.log('Attempting to reconnect WebSocket...');
@@ -144,7 +148,7 @@ const SmasherGameUI = () => {
             } catch (error) {
                 console.error('Failed to connect to WebSocket:', error);
                 connectingRef.current = false;
-
+    
                 // Try to reconnect after a delay
                 wsReconnectTimerRef.current = setTimeout(() => {
                     console.log('Attempting to reconnect WebSocket...');
@@ -152,24 +156,27 @@ const SmasherGameUI = () => {
                 }, 3000);
             }
         };
-
+    
         setupWebSocketConnection();
-
+    
         return () => {
             // Cleanup
             if (socketRef.current) {
                 socketRef.current.close();
                 socketRef.current = null;
             }
-
+    
             if (wsReconnectTimerRef.current) {
                 clearTimeout(wsReconnectTimerRef.current);
                 wsReconnectTimerRef.current = null;
             }
-
+    
             connectingRef.current = false;
         };
     }, []);
+    
+    
+    console.log("Backend Value:",parseInt(gameState.time_remaining))
     useEffect(() => {
         const handleGameStateChange = () => {
             // Check for game start conditions
