@@ -11,12 +11,12 @@ const GameOverScreen = ({ players, playerOneScore, playerTwoScore }) => {
         <h3>Final Scores:</h3>
         <div className="d-flex justify-content-center mt-4">
           <div className="mx-4 text-center">
-            <h4 className="text-primary">{players.playerOne.name}</h4>
-            <h2 className="display-4 text-white">{playerOneScore}</h2>
+            <h4 className="text-white fw-bold pulsating-light">{players.playerOne.name}</h4>
+            <h2 className="display-4 text-white fw-bold">{playerOneScore}</h2>
           </div>
           <div className="mx-4 text-center">
-            <h4 className="text-danger">{players.playerTwo.name}</h4>
-            <h2 className="display-4 text-white">{playerTwoScore}</h2>
+            <h4 className="text-white fw-bold pulsating-light">{players.playerTwo.name}</h4>
+            <h2 className="display-4 text-white fw-bold">{playerTwoScore}</h2>
           </div>
         </div>
       </div>

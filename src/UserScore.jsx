@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Row, Col, Progress, Card, CardBody, CardTitle, CardText, Badge } from 'reactstrap';
+import { Container} from 'reactstrap';
 import Neon from "./asset/neon2.mp4";
 import winner_background from "./asset/winner_background.mp4";
 import During_Game from "./asset/default_video.mp4";
@@ -7,16 +7,10 @@ import Waiting from './Component/waiting';
 import GameScreen from './Component/GameScreen';
 import GameOverScreen from './Component/GameOverScreen';
 import ResultsScreen from './Component/ResultScreen';
+import { MOTIVATION_TEXTS } from './Constant/Constant';
 import './Component/style.css'
 
-// Motivation texts based on code numbers
-const MOTIVATION_TEXTS = {
-    '1': "You can do better!",
-    '2': "Keep pushing harder!",
-    '3': "That's some strength!",
-    '4': "Almost there, one more!",
-    '5': "Incredible power!"
-};
+
 
 const SmasherGameUI = () => {
     // Game state from backend
@@ -28,15 +22,16 @@ const SmasherGameUI = () => {
         p1_win_state: false,
         p2_win_state: false,
         p1_text: "0",
-        p2_text: "0"
+        p2_text: "0",
+        game_time: "0",
     });
 
     // UI state
-    const [timeLeft, setTimeLeft] = useState(10);
     const [gameActive, setGameActive] = useState(false);
     const [gameOver, setGameOver] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const [currentScreen, setCurrentScreen] = useState('waiting');
+    const [currentMotivation, setCurrentMotivation] = useState("");
 
     // Player data
     const [players, setPlayers] = useState({
@@ -105,7 +100,7 @@ const SmasherGameUI = () => {
                                 setGameActive(true);
                                 setGameOver(false);
                                 setShowResults(false);
-                                setTimeLeft(parseInt(gameState.time_remaining) || 60);
+                                
                             } else if (data.start_flag === 0 && data.stop_flag === 1) {
                                 // Show winner screen
                                 setCurrentScreen('results');
@@ -176,7 +171,7 @@ const SmasherGameUI = () => {
     }, []);
     
     
-    console.log("Backend Value:",parseInt(gameState.time_remaining))
+    console.log("Backend Value:",parseInt(gameState.game_time))
     useEffect(() => {
         const handleGameStateChange = () => {
             // Check for game start conditions
@@ -187,8 +182,6 @@ const SmasherGameUI = () => {
                 setGameActive(true);
                 setGameOver(false);
                 setShowResults(false);
-                // Use time_remaining from backend instead of hardcoding 60
-                setTimeLeft(parseInt(gameState.time_remaining) || 60);
                 setPlayers({
                     playerOne: {
                         ...players.playerOne,
@@ -201,10 +194,7 @@ const SmasherGameUI = () => {
                 });
             }
 
-            // Update the timer whenever we receive new data from backend
-            if (gameActive && gameState.time_remaining) {
-                setTimeLeft(parseInt(gameState.time_remaining));
-            }
+         
 
             // Check for game stop conditions with a winner
             if (!gameState.start_flag && gameState.stop_flag && gameActive) {
@@ -237,9 +227,8 @@ const SmasherGameUI = () => {
 
         handleGameStateChange();
     }, [gameState, gameActive, players, currentScreen]);
-    
-    console.log("whoo time",timeLeft)
     // Timer countdown effect
+   {/*
     useEffect(() => {
         if (gameActive && timeLeft === 0) {
             // Time's up - force game over
@@ -258,19 +247,25 @@ const SmasherGameUI = () => {
             }, 50000); // 50 seconds 
         }
     }, [gameActive, gameState, players]);
+   /**/}
 
-    const formatTime = (seconds) => {
-        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const secs = (seconds % 60).toString().padStart(2, '0');
-        return `${mins}:${secs}`;
+        const getRandomMotivation = () => {
+        const randomObject = MOTIVATION_TEXTS[Math.floor(Math.random() * MOTIVATION_TEXTS.length)];
+        const randomText = randomObject.texts[Math.floor(Math.random() * randomObject.texts.length)];
+        return randomText;
     };
-
-    // Get current motivation text for each player
+    useEffect(() => {
+        setCurrentMotivation(getRandomMotivation());
+        const interval = setInterval(() => {
+            setCurrentMotivation(getRandomMotivation());
+        }, 5000);
+        return () => clearInterval(interval);
+    }, []);
+    
     const getPlayerText = (playerCode) => {
         if (!playerCode || playerCode === "0") return "";
-        return MOTIVATION_TEXTS[playerCode] || "";
+        return currentMotivation;
     };
-
     // Get player scores and determine winner
     const dataToUse = (currentScreen === 'results' && finalGameState) ? finalGameState : gameState;
     const playersToUse = (currentScreen === 'results' && finalPlayerData) ? finalPlayerData : players;
@@ -337,8 +332,7 @@ const SmasherGameUI = () => {
                 {/* Game in progress UI */}
                 {currentScreen === 'game' && (
                     <GameScreen
-                        formatTime={formatTime}
-                        timeLeft={timeLeft}
+                        timeLeft={gameState.game_time}
                         players={players}
                         playerOneScore={playerOneScore}
                         playerTwoScore={playerTwoScore}

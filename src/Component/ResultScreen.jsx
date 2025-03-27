@@ -69,8 +69,8 @@ const ResultsScreen = ({ winner, winnerScore, isPlayer1Winner, finalPlayerData, 
                   borderRadius: "7px",
                 }}
               >
-                <div className="text-warning fw-bold mb-0" style={{ fontSize: "3.5rem" ,borderRadius:"7px"}}>
-                  {winnerScore}
+                <div className="text-warning fw-bold mb-0" style={{maxWidth:"320px" ,fontSize: "3.5rem" ,borderRadius:"7px"}}>
+                {winnerScore}
                 </div>
                 <div className="text-white" style={{ fontSize: "0.9rem", letterSpacing: "1px" }}>
                   FINAL SCORE

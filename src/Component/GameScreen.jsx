@@ -1,10 +1,9 @@
 // GameScreen.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Row, Col } from 'reactstrap';
 import "./style.css"
-import { MainHeading,TimeRemaining,SubHeading } from '../Constant/Constant';
+import { MainHeading, TimeRemaining, SubHeading } from '../Constant/Constant';
 const GameScreen = ({
-  formatTime,
   timeLeft,
   players,
   playerOneScore,
@@ -12,6 +11,30 @@ const GameScreen = ({
   getPlayerText,
   gameState
 }) => {
+  const [countdown, setCountdown] = useState(timeLeft);
+  useEffect(() => {
+    if (countdown <= 0) return; // exit if countdown is 0 or negative
+
+    const interval = setInterval(() => {
+      setCountdown((prevTime) => {
+        if (prevTime <= 1) {
+          clearInterval(interval); // stop countdown when 0 is reached
+          console.log('Countdown finished!');
+          return 0;
+        }
+        return prevTime - 1; // decrease by 1 each second
+      });
+    }, 1000); // Run every second
+
+    return () => clearInterval(interval); // cleanup interval on component unmount
+  }, [countdown]);
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+  };
+
+
   return (
     <div className="game-screen animate__animated animate__fadeIn w-100">
       <Row className="mb-4">
@@ -34,7 +57,7 @@ const GameScreen = ({
           <div>
             <h2 className="text-white mb-1">{TimeRemaining}</h2>
             <h3 className="display-4 text-white fw-bold mb-0 pulsating-light">
-              {formatTime(timeLeft)}
+              {formatTime(countdown)}
             </h3>
           </div>
         </Col>
@@ -61,7 +84,7 @@ const GameScreen = ({
                     </h2>
                     <div className="text-white">SCORE</div>
                   </div>
-                
+
                   {getPlayerText(gameState.p1_text) && (
                     <div className="mt-2 text-info fw-bold hit-message">
                       <h4>"{getPlayerText(gameState.p1_text)}"</h4>
@@ -83,23 +106,24 @@ const GameScreen = ({
 
               <Col xs={12} md={5} className="text-center">
                 <div className="d-flex flex-column align-items-center">
-                  <div className="mb-2">
+                <div className="mb-2">
                     <img
-                      src={players.playerTwo.avatar}
-                      alt="Player 2"
-                      className="rounded-circle border border-danger border-3"
+                      src={players.playerOne.avatar}
+                      alt="Player 1"
+                      className="rounded-circle border border-primary border-3"
                       style={{ width: '120px', height: '120px', objectFit: 'cover' }}
                     />
                   </div>
+
                   <h3 className="text-white mb-2">{players.playerTwo.name}</h3>
-                  <div className="bg-danger bg-opacity-25 rounded p-3 mb-2 w-75">
-                    <h2 className="text-danger fw-bold mb-0" style={{ fontSize: '2.5rem' }}>
+                  <div className="bg-primary bg-opacity-25 rounded p-3 mb-2 w-75">
+                    <h2 className="text-primary fw-bold mb-0" style={{ fontSize: '2.5rem' }}>
                       {playerTwoScore}
                     </h2>
                     <div className="text-white">SCORE</div>
                   </div>
                   {getPlayerText(gameState.p2_text) && (
-                    <div className="mt-2 text-danger fs-15 fw-bold hit-message">
+                    <div className="mt-2 text-primary fs-15 fw-bold hit-message">
                       <h4>"{getPlayerText(gameState.p2_text)}"</h4>
                     </div>
                   )}

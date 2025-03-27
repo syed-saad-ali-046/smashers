@@ -19,6 +19,7 @@ class WebSocketSender:
         self.p2_win_state = False
         self.p1_text = "0"
         self.p2_text = "0"
+        self.timer = 120 # time in seconds
         
         # Thread control
         self.running = True
@@ -65,6 +66,7 @@ class WebSocketSender:
                     "p2_win_state": self.p2_win_state,
                     "p1_text": self.p1_text,
                     "p2_text": self.p2_text,
+                    "game_time": self.timer,
                 }
 
                 # Convert to JSON string
