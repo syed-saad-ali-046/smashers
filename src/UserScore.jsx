@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container} from 'reactstrap';
+import { Container } from 'reactstrap';
 import Neon from "./asset/neon2.mp4";
 import winner_background from "./asset/winner_background.mp4";
 import During_Game from "./asset/default_video.mp4";
@@ -50,6 +50,8 @@ const SmasherGameUI = () => {
     // Preserve final game state for results screen
     const [finalGameState, setFinalGameState] = useState(null);
     const [finalPlayerData, setFinalPlayerData] = useState(null);
+    const [p1Motivation, setP1Motivation] = useState("");
+    const [p2Motivation, setP2Motivation] = useState("");
 
     // Refs for WebSocket connection
     const socketRef = useRef(null);
@@ -61,32 +63,32 @@ const SmasherGameUI = () => {
         const setupWebSocketConnection = () => {
             if (connectingRef.current) return;
             connectingRef.current = true;
-    
+
             try {
                 const wsUrl = 'ws://localhost:8061';
                 const socket = new WebSocket(wsUrl);
-    
+
                 socket.onopen = () => {
                     console.log('Connected to WebSocket proxy for ZMQ');
                     socketRef.current = socket;
                     connectingRef.current = false;
-    
+
                     // Clear any reconnect timers
                     if (wsReconnectTimerRef.current) {
                         clearTimeout(wsReconnectTimerRef.current);
                         wsReconnectTimerRef.current = null;
                     }
                 };
-    
+
                 socket.onmessage = (event) => {
                     try {
                         const data = JSON.parse(event.data);
                         console.log('Received ZMQ data:', data);
-    
+
                         // Update game state based on received WebSocket data
                         setGameState(prevState => {
                             const newState = { ...prevState, ...data };
-    
+
                             // Transition based on start_flag and stop_flag values
                             if (data.start_flag === 0 && data.stop_flag === 0) {
                                 // Show waiting screen
@@ -100,7 +102,7 @@ const SmasherGameUI = () => {
                                 setGameActive(true);
                                 setGameOver(false);
                                 setShowResults(false);
-                                
+
                             } else if (data.start_flag === 0 && data.stop_flag === 1) {
                                 // Show winner screen
                                 setCurrentScreen('results');
@@ -115,25 +117,25 @@ const SmasherGameUI = () => {
                                 }, 500000); // Timer duration for results screen
                                 return () => clearTimeout(timer);
                             }
-    
+
                             return newState;
                         });
                     } catch (error) {
                         console.error('Error parsing WebSocket message:', error);
                     }
                 };
-    
+
                 socket.onerror = (error) => {
                     console.error('WebSocket error:', error);
                     socketRef.current = null;
                     connectingRef.current = false;
                 };
-    
+
                 socket.onclose = () => {
                     console.log('WebSocket connection closed');
                     socketRef.current = null;
                     connectingRef.current = false;
-    
+
                     // Try to reconnect after a delay
                     wsReconnectTimerRef.current = setTimeout(() => {
                         console.log('Attempting to reconnect WebSocket...');
@@ -143,7 +145,7 @@ const SmasherGameUI = () => {
             } catch (error) {
                 console.error('Failed to connect to WebSocket:', error);
                 connectingRef.current = false;
-    
+
                 // Try to reconnect after a delay
                 wsReconnectTimerRef.current = setTimeout(() => {
                     console.log('Attempting to reconnect WebSocket...');
@@ -151,27 +153,27 @@ const SmasherGameUI = () => {
                 }, 3000);
             }
         };
-    
+
         setupWebSocketConnection();
-    
+
         return () => {
             // Cleanup
             if (socketRef.current) {
                 socketRef.current.close();
                 socketRef.current = null;
             }
-    
+
             if (wsReconnectTimerRef.current) {
                 clearTimeout(wsReconnectTimerRef.current);
                 wsReconnectTimerRef.current = null;
             }
-    
+
             connectingRef.current = false;
         };
     }, []);
-    
-    
-    console.log("Backend Value:",parseInt(gameState.game_time))
+
+
+    console.log("Backend Value:", parseInt(gameState.game_time))
     useEffect(() => {
         const handleGameStateChange = () => {
             // Check for game start conditions
@@ -194,7 +196,7 @@ const SmasherGameUI = () => {
                 });
             }
 
-         
+
 
             // Check for game stop conditions with a winner
             if (!gameState.start_flag && gameState.stop_flag && gameActive) {
@@ -228,7 +230,7 @@ const SmasherGameUI = () => {
         handleGameStateChange();
     }, [gameState, gameActive, players, currentScreen]);
     // Timer countdown effect
-   {/*
+    {/*
     useEffect(() => {
         if (gameActive && timeLeft === 0) {
             // Time's up - force game over
@@ -248,24 +250,35 @@ const SmasherGameUI = () => {
         }
     }, [gameActive, gameState, players]);
    /**/}
-
-        const getRandomMotivation = () => {
-        const randomObject = MOTIVATION_TEXTS[Math.floor(Math.random() * MOTIVATION_TEXTS.length)];
-        const randomText = randomObject.texts[Math.floor(Math.random() * randomObject.texts.length)];
-        return randomText;
-    };
-    useEffect(() => {
-        setCurrentMotivation(getRandomMotivation());
-        const interval = setInterval(() => {
-            setCurrentMotivation(getRandomMotivation());
-        }, 5000);
-        return () => clearInterval(interval);
-    }, []);
+   const getRandomMotivation = (status) => {
+    const id = Number(status);
+    const statusGroup = MOTIVATION_TEXTS.find(group => group.id === id);
+    const targetGroup = statusGroup || MOTIVATION_TEXTS.find(group => group.id === 1);
+    return targetGroup.texts[Math.floor(Math.random() * targetGroup.texts.length)];
+  };
     
-    const getPlayerText = (playerCode) => {
-        if (!playerCode || playerCode === "0") return "";
-        return currentMotivation;
-    };
+  useEffect(() => {
+    setP1Motivation(getRandomMotivation(gameState.p1_text));
+    setP2Motivation(getRandomMotivation(gameState.p2_text)); 
+    const interval = setInterval(() => {
+      setP1Motivation(getRandomMotivation(gameState.p1_text));
+      setP2Motivation(getRandomMotivation(gameState.p2_text));
+    }, 5000);
+  
+    return () => clearInterval(interval);
+  }, [gameState.p1_text, gameState.p2_text]);
+  const getPlayerText = (textCode) => {
+    // Compare the provided textCode with gameState values.
+    if (textCode === gameState.p1_text) {
+      return p1Motivation;
+    } else if (textCode === gameState.p2_text) {
+      return p2Motivation;
+    }
+    return "";
+  };
+  
+  
+
     // Get player scores and determine winner
     const dataToUse = (currentScreen === 'results' && finalGameState) ? finalGameState : gameState;
     const playersToUse = (currentScreen === 'results' && finalPlayerData) ? finalPlayerData : players;
@@ -352,26 +365,26 @@ const SmasherGameUI = () => {
 
                 {/* Results Screen */}
                 {currentScreen === 'results' && finalGameState && finalPlayerData && (
-                <>
-                <video
-                    className="position-absolute w-100 h-100"
-                    style={{ objectFit: 'cover', zIndex: -1 }}
-                    autoPlay
-                    loop
-                    muted
-                  >
-                    <source src={Neon} type="video/mp4" />
-                  </video>
-                    <ResultsScreen
-                        winner_background={winner_background}
-                        winner={winner}
-                        winnerScore={winnerScore}
-                        isPlayer1Winner={isPlayer1Winner}
-                        finalPlayerData={finalPlayerData}
-                        playerOneScore={playerOneScore}
-                        playerTwoScore={playerTwoScore}
-                    />
-                </>
+                    <>
+                        <video
+                            className="position-absolute w-100 h-100"
+                            style={{ objectFit: 'cover', zIndex: -1 }}
+                            autoPlay
+                            loop
+                            muted
+                        >
+                            <source src={Neon} type="video/mp4" />
+                        </video>
+                        <ResultsScreen
+                            winner_background={winner_background}
+                            winner={winner}
+                            winnerScore={winnerScore}
+                            isPlayer1Winner={isPlayer1Winner}
+                            finalPlayerData={finalPlayerData}
+                            playerOneScore={playerOneScore}
+                            playerTwoScore={playerTwoScore}
+                        />
+                    </>
                 )}
             </Container>
         </div>
