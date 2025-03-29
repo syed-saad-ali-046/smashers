@@ -9,9 +9,7 @@ import GameOverScreen from './Component/GameOverScreen';
 import ResultsScreen from './Component/ResultScreen';
 import { MOTIVATION_TEXTS } from './Constant/Constant';
 import './Component/style.css'
-
-
-
+import Avatar from './asset/avatar.jpeg'
 const SmasherGameUI = () => {
     // Game state from backend
     const [gameState, setGameState] = useState({
@@ -37,12 +35,12 @@ const SmasherGameUI = () => {
     const [players, setPlayers] = useState({
         playerOne: {
             name: "Player 1",
-            avatar: "https://static.vecteezy.com/system/resources/thumbnails/022/720/061/small/boxer-muscles-brutal-strong-fighter-ai-generated-photo.jpeg",
+            avatar: Avatar,
             hits: []
         },
         playerTwo: {
             name: "Player 2",
-            avatar: "https://static.vecteezy.com/system/resources/thumbnails/022/720/061/small/boxer-muscles-brutal-strong-fighter-ai-generated-photo.jpeg",
+            avatar: Avatar,
             hits: []
         }
     });

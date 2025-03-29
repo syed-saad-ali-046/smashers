@@ -39,7 +39,7 @@ const ResultsScreen = ({ winner, winnerScore, isPlayer1Winner, finalPlayerData, 
                   }}
                 ></div>
                 <img
-                  src={winner.avatar || "/placeholder.svg"}
+                  src={winner.avatar}
                   alt={winner.name}
                   className="position-relative rounded-circle border border-4 border-warning mb-3"
                   style={{ width: "150px", height: "150px", objectFit: "cover", zIndex: 1 }}
@@ -63,7 +63,7 @@ const ResultsScreen = ({ winner, winnerScore, isPlayer1Winner, finalPlayerData, 
               <div
                 className="bg-warning bg-opacity-25 rounded-lg p-4  mx-auto"
                 style={{
-                  maxWidth: "240px",
+                  maxWidth: "280px",
                   backdropFilter: "blur(5px)",
                   border: "1px solid rgba(255, 215, 0, 0.3)",
                   borderRadius: "7px",
