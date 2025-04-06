@@ -9,7 +9,9 @@ import GameOverScreen from './Component/GameOverScreen';
 import ResultsScreen from './Component/ResultScreen';
 import { MOTIVATION_TEXTS } from './Constant/Constant';
 import './Component/style.css'
-import Avatar from './asset/avatar.jpeg'
+import Avatar1 from './asset/Avatar6.jpg'
+import Avatar2 from './asset/Avatar5.jpg'
+
 const SmasherGameUI = () => {
     // Game state from backend
     const [gameState, setGameState] = useState({
@@ -29,18 +31,22 @@ const SmasherGameUI = () => {
     const [gameOver, setGameOver] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const [currentScreen, setCurrentScreen] = useState('waiting');
-    const [currentMotivation, setCurrentMotivation] = useState("");
+
+    
+    // Track if game has started to prevent timer resets
+    const gameStartedRef = useRef(false);
+    const initialGameTimeRef = useRef(null);
 
     // Player data
     const [players, setPlayers] = useState({
         playerOne: {
             name: "Player 1",
-            avatar: Avatar,
+            avatar: Avatar2,
             hits: []
         },
         playerTwo: {
             name: "Player 2",
-            avatar: Avatar,
+            avatar: Avatar1,
             hits: []
         }
     });
@@ -85,7 +91,46 @@ const SmasherGameUI = () => {
 
                         // Update game state based on received WebSocket data
                         setGameState(prevState => {
-                            const newState = { ...prevState, ...data };
+                            const newState = { ...prevState };
+                            
+                            // Update flags
+                            if (data.hasOwnProperty('start_flag')) newState.start_flag = data.start_flag;
+                            if (data.hasOwnProperty('stop_flag')) newState.stop_flag = data.stop_flag;
+                            
+                            // Update scores and win states
+                            if (data.hasOwnProperty('p1_score')) newState.p1_score = data.p1_score;
+                            if (data.hasOwnProperty('p2_score')) newState.p2_score = data.p2_score;
+                            if (data.hasOwnProperty('p1_win_state')) newState.p1_win_state = data.p1_win_state;
+                            if (data.hasOwnProperty('p2_win_state')) newState.p2_win_state = data.p2_win_state;
+                            if (data.hasOwnProperty('p1_text')) newState.p1_text = data.p1_text;
+                            if (data.hasOwnProperty('p2_text')) newState.p2_text = data.p2_text;
+                            
+                            // Handle game time with persistence
+                            if (data.hasOwnProperty('game_time')) {
+                                // Only update the timer if:
+                                // 1. Game hasn't started yet (first time receiving time)
+                                // 2. We're transitioning from waiting to active game
+                                // 3. Game is being reset (both flags are 0)
+                                if (
+                                    !gameStartedRef.current || 
+                                    (data.start_flag === 1 && data.stop_flag === 0 && !gameActive) || 
+                                    (data.start_flag === 0 && data.stop_flag === 0)
+                                ) {
+                                    newState.game_time = data.game_time;
+                                    
+                                    // If game is starting, store initial time
+                                    if (data.start_flag === 1 && data.stop_flag === 0) {
+                                        initialGameTimeRef.current = data.game_time;
+                                        gameStartedRef.current = true;
+                                    }
+                                    
+                                    // If game is reset, clear the started flag
+                                    if (data.start_flag === 0 && data.stop_flag === 0) {
+                                        gameStartedRef.current = false;
+                                        initialGameTimeRef.current = null;
+                                    }
+                                }
+                            }
 
                             // Transition based on start_flag and stop_flag values
                             if (data.start_flag === 0 && data.stop_flag === 0) {
@@ -94,26 +139,30 @@ const SmasherGameUI = () => {
                                 setGameActive(false);
                                 setGameOver(false);
                                 setShowResults(false);
+                                // Reset game started flag when returning to waiting
+                                gameStartedRef.current = false;
+                                initialGameTimeRef.current = null;
                             } else if (data.start_flag === 1 && data.stop_flag === 0) {
                                 // Game starting
                                 setCurrentScreen('game');
                                 setGameActive(true);
                                 setGameOver(false);
                                 setShowResults(false);
-
+                                // Mark that game has started
+                                gameStartedRef.current = true;
+                                // Capture initial time if not yet set
+                                if (initialGameTimeRef.current === null) {
+                                    initialGameTimeRef.current = data.game_time;
+                                }
                             } else if (data.start_flag === 0 && data.stop_flag === 1) {
                                 // Show winner screen
                                 setCurrentScreen('results');
                                 setGameActive(false);
                                 setGameOver(true);
                                 setShowResults(true);
-                                // Handle independent timer for winner screen
-                                const timer = setTimeout(() => {
-                                    setCurrentScreen('waiting');
-                                    setGameOver(false);
-                                    setShowResults(false);
-                                }, 500000); // Timer duration for results screen
-                                return () => clearTimeout(timer);
+                                // Reset game started flag when game is over
+                                gameStartedRef.current = false;
+                                initialGameTimeRef.current = null;
                             }
 
                             return newState;
@@ -154,6 +203,19 @@ const SmasherGameUI = () => {
 
         setupWebSocketConnection();
 
+        // Try to recover game state from localStorage on refresh
+        const savedGameState = localStorage.getItem('gameState');
+        if (savedGameState) {
+            const parsedState = JSON.parse(savedGameState);
+            if (parsedState.start_flag === 1 && parsedState.stop_flag === 0) {
+                setGameState(parsedState);
+                gameStartedRef.current = true;
+                initialGameTimeRef.current = parsedState.game_time;
+                setCurrentScreen('game');
+                setGameActive(true);
+            }
+        }
+
         return () => {
             // Cleanup
             if (socketRef.current) {
@@ -170,6 +232,15 @@ const SmasherGameUI = () => {
         };
     }, []);
 
+    // Save game state to localStorage when it changes and game is active
+    useEffect(() => {
+        if (gameActive) {
+            localStorage.setItem('gameState', JSON.stringify(gameState));
+        } else if (currentScreen === 'waiting') {
+            // Clear saved state when back to waiting
+            localStorage.removeItem('gameState');
+        }
+    }, [gameState, gameActive, currentScreen]);
 
     console.log("Backend Value:", parseInt(gameState.game_time))
     useEffect(() => {
@@ -194,8 +265,6 @@ const SmasherGameUI = () => {
                 });
             }
 
-
-
             // Check for game stop conditions with a winner
             if (!gameState.start_flag && gameState.stop_flag && gameActive) {
                 console.log("Game ending with winner determination!");
@@ -207,6 +276,9 @@ const SmasherGameUI = () => {
                 setGameActive(false);
                 setGameOver(true);
                 setCurrentScreen('gameOver');
+
+                // Clear any saved game state
+                localStorage.removeItem('gameState');
 
                 // Show results after a delay for a better transition experience
                 setTimeout(() => {
@@ -222,60 +294,42 @@ const SmasherGameUI = () => {
                 setGameActive(false);
                 setGameOver(false);
                 setShowResults(false);
+                
+                // Clear saved state when back to waiting
+                localStorage.removeItem('gameState');
             }
         };
 
         handleGameStateChange();
     }, [gameState, gameActive, players, currentScreen]);
-    // Timer countdown effect
-    {/*
+
+    const getRandomMotivation = (status) => {
+        const id = Number(status);
+        const statusGroup = MOTIVATION_TEXTS.find(group => group.id === id);
+        const targetGroup = statusGroup || MOTIVATION_TEXTS.find(group => group.id === 1);
+        return targetGroup.texts[Math.floor(Math.random() * targetGroup.texts.length)];
+    };
+        
     useEffect(() => {
-        if (gameActive && timeLeft === 0) {
-            // Time's up - force game over
-            setGameActive(false);
-            setGameOver(true);
-            setCurrentScreen('gameOver');
-
-            // Save final game state
-            setFinalGameState({ ...gameState });
-            setFinalPlayerData({ ...players });
-
-            // Show results after delay
-            setTimeout(() => {
-                setCurrentScreen('results');
-                setShowResults(true);
-            }, 50000); // 50 seconds 
-        }
-    }, [gameActive, gameState, players]);
-   /**/}
-   const getRandomMotivation = (status) => {
-    const id = Number(status);
-    const statusGroup = MOTIVATION_TEXTS.find(group => group.id === id);
-    const targetGroup = statusGroup || MOTIVATION_TEXTS.find(group => group.id === 1);
-    return targetGroup.texts[Math.floor(Math.random() * targetGroup.texts.length)];
-  };
+        setP1Motivation(getRandomMotivation(gameState.p1_text));
+        setP2Motivation(getRandomMotivation(gameState.p2_text)); 
+        const interval = setInterval(() => {
+            setP1Motivation(getRandomMotivation(gameState.p1_text));
+            setP2Motivation(getRandomMotivation(gameState.p2_text));
+        }, 5000);
     
-  useEffect(() => {
-    setP1Motivation(getRandomMotivation(gameState.p1_text));
-    setP2Motivation(getRandomMotivation(gameState.p2_text)); 
-    const interval = setInterval(() => {
-      setP1Motivation(getRandomMotivation(gameState.p1_text));
-      setP2Motivation(getRandomMotivation(gameState.p2_text));
-    }, 5000);
-  
-    return () => clearInterval(interval);
-  }, [gameState.p1_text, gameState.p2_text]);
-  const getPlayerText = (textCode) => {
-    // Compare the provided textCode with gameState values.
-    if (textCode === gameState.p1_text) {
-      return p1Motivation;
-    } else if (textCode === gameState.p2_text) {
-      return p2Motivation;
-    }
-    return "";
-  };
-  
-  
+        return () => clearInterval(interval);
+    }, [gameState.p1_text, gameState.p2_text]);
+
+    const getPlayerText = (textCode) => {
+        // Compare the provided textCode with gameState values.
+        if (textCode === gameState.p1_text) {
+            return p1Motivation;
+        } else if (textCode === gameState.p2_text) {
+            return p2Motivation;
+        }
+        return "";
+    };
 
     // Get player scores and determine winner
     const dataToUse = (currentScreen === 'results' && finalGameState) ? finalGameState : gameState;
@@ -284,7 +338,6 @@ const SmasherGameUI = () => {
     const playerOneScore = parseInt(dataToUse.p1_score) || 0;
     const playerTwoScore = parseInt(dataToUse.p2_score) || 0;
 
-
     // Determine winner
     const winner = dataToUse.p1_win_state ? playersToUse.playerOne :
         dataToUse.p2_win_state ? playersToUse.playerTwo : null;
@@ -292,6 +345,7 @@ const SmasherGameUI = () => {
     const winnerScore = dataToUse.p1_win_state ? playerOneScore : playerTwoScore;
     const loserScore = dataToUse.p1_win_state ? playerTwoScore : playerOneScore;
     const isPlayer1Winner = dataToUse.p1_win_state;
+
     //reset to new screen
     useEffect(() => {
         if (currentScreen === 'results') {
@@ -301,12 +355,28 @@ const SmasherGameUI = () => {
                 setShowResults(false);
                 setFinalGameState(null);
                 setFinalPlayerData(null);
+                
+                // Clear saved state
+                localStorage.removeItem('gameState');
             }, 500000);
 
             return () => clearTimeout(timeoutId);
         }
     }, [currentScreen]);
 
+    // Handle window beforeunload event to preserve game state
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            if (gameActive) {
+                localStorage.setItem('gameState', JSON.stringify(gameState));
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [gameState, gameActive]);
 
     return (
         <div className="game-container position-relative w-100 min-vh-100 overflow-hidden">

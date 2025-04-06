@@ -40,13 +40,13 @@ const GameScreen = ({
       <Row className="mb-4">
         <Col>
           <h1
-            className="display-2 text-white fw-bold pulsating-light"
+            className="display-2 text-white fw-bold pulsating-light "
             style={{
               textShadow: '0 0 20px #00f, 0 0 30px #00f',
               fontFamily: '"Orbitron", sans-serif'
             }}
           >
-            {MainHeading}
+            {MainHeading}d
           </h1>
           <h4 className="text-white mb-4">{SubHeading}</h4>
         </Col>
@@ -74,7 +74,7 @@ const GameScreen = ({
                       src={players.playerOne.avatar}
                       alt="Player 1"
                       className="rounded-circle border border-primary border-3"
-                      style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                      style={{ width: '120px', height: '120px', objectFit: 'contain' }}
                     />
                   </div>
                   <h3 className="text-white mb-2">{players.playerOne.name}</h3>
@@ -108,10 +108,10 @@ const GameScreen = ({
                 <div className="d-flex flex-column align-items-center">
                 <div className="mb-2">
                     <img
-                      src={players.playerOne.avatar}
+                      src={players.playerTwo.avatar}
                       alt="Player 1"
                       className="rounded-circle border border-primary border-3"
-                      style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                      style={{ width: '120px', height: '120px', objectFit: 'contain' }}
                     />
                   </div>
 
