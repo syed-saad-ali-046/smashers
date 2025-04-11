@@ -46,16 +46,16 @@ const GameScreen = ({
               fontFamily: '"Orbitron", sans-serif'
             }}
           >
-            {MainHeading}d
+            {MainHeading}
           </h1>
-          <h4 className="text-white mb-4">{SubHeading}</h4>
+          <h3 className="text-white mb-4 font-blackletter pulsating-light">{SubHeading}</h3>
         </Col>
       </Row>
 
       <Row className="mb-4 w-100">
         <Col xs={12} md={8} className="mx-auto">
           <div>
-            <h2 className="text-white mb-1">{TimeRemaining}</h2>
+            <h4 className="text-white mb-1">{TimeRemaining}</h4>
             <h3 className="display-4 text-white fw-bold mb-0 pulsating-light">
               {formatTime(countdown)}
             </h3>
@@ -77,17 +77,17 @@ const GameScreen = ({
                       style={{ width: '120px', height: '120px', objectFit: 'contain' }}
                     />
                   </div>
-                  <h3 className="text-white mb-2">{players.playerOne.name}</h3>
+                  <h2 className="text-white mb-2">{players.playerOne.name}</h2>
                   <div className="bg-primary bg-opacity-25 rounded p-3 mb-2 w-75">
-                    <h2 className="text-info fw-bold mb-0" style={{ fontSize: '2.5rem' }}>
+                    <h2 className="text-info fw-bold mb-0" style={{ fontSize: '4rem' }}>
                       {playerOneScore}
                     </h2>
-                    <div className="text-white">SCORE</div>
+                    <div className="text-white" style={{ fontSize: '1.5rem' }}>SCORE</div>
                   </div>
 
                   {getPlayerText(gameState.p1_text) && (
                     <div className="mt-2 text-info fw-bold hit-message">
-                      <h4>"{getPlayerText(gameState.p1_text)}"</h4>
+                      <h3 className='font-blackletter'>"{getPlayerText(gameState.p1_text)}"</h3>
                     </div>
                   )}
                 </div>
@@ -115,16 +115,16 @@ const GameScreen = ({
                     />
                   </div>
 
-                  <h3 className="text-white mb-2">{players.playerTwo.name}</h3>
+                  <h2 className="text-white mb-2">{players.playerTwo.name}</h2>
                   <div className="bg-primary bg-opacity-25 rounded p-3 mb-2 w-75">
-                    <h2 className="text-primary fw-bold mb-0" style={{ fontSize: '2.5rem' }}>
+                    <h2 className="text-info fw-bold mb-0" style={{ fontSize: '4rem' }}>
                       {playerTwoScore}
                     </h2>
-                    <div className="text-white">SCORE</div>
+                    <div className="text-white" style={{ fontSize: '1.5rem' }}>SCORE</div>
                   </div>
                   {getPlayerText(gameState.p2_text) && (
-                    <div className="mt-2 text-primary fs-15 fw-bold hit-message">
-                      <h4>"{getPlayerText(gameState.p2_text)}"</h4>
+                    <div className="mt-2 text-info fw-bold hit-message">
+                      <h3 className='font-blackletter'>"{getPlayerText(gameState.p2_text)}"</h3>
                     </div>
                   )}
                 </div>

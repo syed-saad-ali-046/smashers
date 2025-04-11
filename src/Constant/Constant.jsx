@@ -2,7 +2,7 @@ export const MainHeading="SMASHER";
 export const SubHeading="TEST YOUR STRENGTH!";
 export const TimeRemaining="TIME REMAINING";
 export const GameOver="GAME OVER";
-export const WaitingForPlayers="WAITING FOR PLAYERS...";
+export const WaitingForPlayers="Press controller button to start the game....";
 export const MOTIVATION_TEXTS = [
     {
         id: 1,
@@ -41,7 +41,7 @@ export const MOTIVATION_TEXTS = [
         ]
     },
     {
-        id: 4,  // **Elite Tier Motivation**
+        id: 4,  
         texts: [
             "UNLEASH THE BEAST MODE! ",
             "THIS IS YOUR GLORY ZONE! ",
@@ -53,7 +53,7 @@ export const MOTIVATION_TEXTS = [
         ]
     },
     {
-        id: 5,  // **Legendary Tier Motivation**
+        id: 5, 
         texts: [
             " DEATH BEFORE QUITTING! ",
             " YOU ARE THE DRAGON—BREATHE FIRE! ",

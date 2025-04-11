@@ -236,3 +236,14 @@
     align-items: center;
     justify-content: center;
 }
+/*Custom font */
+@font-face {
+    font-family: 'DangerSlanted'; /* Choose a name for your font */
+    src: url('../fonts/AnotherDanger.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+  }
+.font-blackletter {
+    font-family: 'DangerSlanted', Arial, sans-serif;
+    letter-spacing: 1px;
+  }

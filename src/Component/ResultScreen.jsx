@@ -161,7 +161,7 @@ const ResultsScreen = ({ winner, winnerScore, isPlayer1Winner, finalPlayerData, 
                       className={`fw-bold ${isPlayer1Winner ? "text-warning" : "text-white"}`}
                       style={{ fontSize: "2.5rem" }}
                     >
-                      {playerOneScore} <span className="small">pts</span>
+                      {playerOneScore} <span className="small">hits</span>
                     </div>
                   </div>
 
@@ -243,7 +243,7 @@ const ResultsScreen = ({ winner, winnerScore, isPlayer1Winner, finalPlayerData, 
                       className={`fw-bold ${!isPlayer1Winner && playerOneScore !== playerTwoScore ? "text-warning" : "text-white"}`}
                       style={{ fontSize: "2.5rem" }}
                     >
-                      {playerTwoScore} <span className="small">pts</span>
+                      {playerTwoScore} <span className="small">hits</span>
                     </div>
                   </div>
 
